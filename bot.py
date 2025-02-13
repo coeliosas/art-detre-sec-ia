@@ -9,6 +9,11 @@ import time
 load_dotenv()
 api_key = os.getenv("OPENAI_API_KEY")
 
+if api_key is None:
+    raise ValueError("Clé API OpenAI non trouvée. Vérifie tes secrets Streamlit Cloud.")
+
+client = openai.OpenAI(api_key=api_key)
+
 # Initialiser OpenAI
 client = openai.OpenAI(api_key=api_key)
 
@@ -43,8 +48,8 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-st.title("👑 L’Art d’Être Sec IA 👑")
-st.subheader("Ton programme de perte de poids optimisé !")
+st.title("AI Program by L’Art d’Être Sec")
+st.subheader("Ton programme de perte de poids automatisée !")
 st.progress(0)
 
 st.markdown("---")
