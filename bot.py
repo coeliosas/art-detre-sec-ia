@@ -49,7 +49,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 st.title("AI Program by L’Art d’Être Sec")
-st.subheader("Ton programme de perte de poids automatisée !")
+st.subheader("Ton programme de perte de poids automatisé !")
 st.progress(0)
 
 st.markdown("---")
