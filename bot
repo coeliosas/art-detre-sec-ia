@@ -1,0 +1,6 @@
+cd C:\Lartdetresec\chatbotpdp
+git init
+git add .
+git commit -m "Déploiement du bot L’Art d’Être Sec IA"
+git remote add origin https://github.com/coeliosas/art-detre-sec-ia.git
+git push -u origin main
