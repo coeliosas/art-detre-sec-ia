@@ -85,6 +85,12 @@ if affirmation == "Non":
 masse_maigre = poids * (1 - (bodyfat / 100))
 proteines, lipides, glucides, fibres = calculer_macronutriments(masse_maigre, metabolisme_basal)
 
+from datetime import datetime, timedelta
+
+st.subheader("📅 Sélectionne la date de début du programme")
+date_debut = st.date_input("Date de début", datetime.today(), key="date_debut")
+date_formatee = date_debut.strftime("%d/%m/%Y")
+
 generate_button = st.button("🚀 Générer mon programme", key="generate_button")
 
 if generate_button:
@@ -99,28 +105,32 @@ if generate_button:
     pdf.rect(0, 0, 210, 297, 'F')  # Ajout d'un logo en haut du document
     pdf.set_fill_color(0, 0, 0)  # Fond noir  # Fond noir
     pdf.rect(0, 0, 210, 297, 'F')  # Remplissage du fond
+    pdf.ln(5)
     pdf.set_text_color(255, 215, 0)  # Texte en doré
     pdf.set_font("Arial", size=50)
     pdf.set_text_color(255, 215, 0)
     pdf.rotate(45, x=50, y=150)
-    pdf.text(50, 150, sanitize_text("L’Art d’Être Sec Premium"))
+    pdf.text(50, 150, sanitize_text("AI Program by L’Art d’Être Sec"))
     pdf.rotate(0)  # Réinitialisation de la rotation
     pdf.set_fill_color(0, 0, 0)  # Fond noir
     pdf.rect(0, 0, 210, 297, 'F')  # Remplissage du fond
     pdf.set_text_color(255, 215, 0)  # Texte en doré
     pdf.set_font("Arial", style='B', size=16)
     pdf.set_font("Helvetica", style='B', size=22)
-    pdf.cell(200, 15, sanitize_text("L’Art d’Être Sec Premium Courses"), ln=True, align='C', fill=True)
+    pdf.cell(200, 15, sanitize_text("AI Program by L’Art d’Être Sec"), ln=True, align='C', fill=True)
+    pdf.set_text_color(255, 215, 0)  # Texte doré
+    pdf.set_font("Helvetica", size=14) 
+    pdf.cell(0, 10, sanitize_text("-Premium Courses-"), ln=True, align='C')
     pdf.ln(10)
     pdf.set_fill_color(255, 215, 0)  # Séparateurs dorés
-    pdf.cell(0, 0.5, '', 0, 1, 'C', fill=True)
+    pdf.cell(0, 0.10, '', 0, 1, 'C', fill=True)
     pdf.ln(5)
     pdf.ln(10)
     if besoin_preparation:
         pdf.set_font("Arial", style='B', size=14)
-        pdf.cell(0, 10, sanitize_text("Semaine de Préparation"), ln=True)
+        pdf.cell(0, 10, f"Semaine de Préparation - {date_formatee}", ln=True)
         pdf.set_font("Arial", size=12)
-        pdf.multi_cell(0, 10, sanitize_text(f"Objectif : 10 000 pas/jour\nCalories : {int(metabolisme_basal * 1.725)} kcal"))
+        pdf.multi_cell(0, 10, sanitize_text(f"Objectif : 10 000 pas/jour\nCalories/jour : {int(metabolisme_basal * 1.725)} kcal"))
         pdf.ln(5)
     
     pdf.set_font("Arial", style='B', size=12)
@@ -132,7 +142,7 @@ if generate_button:
     pdf.set_font("Arial", style='B', size=12)
     pdf.cell(30, 10, "Semaine", 1, 0, 'C', fill=True)
     pdf.cell(40, 10, "Pas/jour", 1, 0, 'C', fill=True)
-    pdf.cell(40, 10, "Calories", 1, 0, 'C', fill=True)
+    pdf.cell(40, 10, "Calories/jour", 1, 0, 'C', fill=True)
     pdf.cell(30, 10, "Protéines (g)", 1, 0, 'C', fill=True)
     pdf.cell(30, 10, "Lipides (g)", 1, 0, 'C', fill=True)
     pdf.cell(30, 10, "Glucides (g)", 1, 1, 'C', fill=True)
@@ -140,12 +150,22 @@ if generate_button:
     
     semaines = [(15000, 800), (15000, 600), (18000, 400), (18000, 200), (20000, 0),
                 (20000, 0), (20000, 200), (20000, 400), (20000, 600), (20000, 800), (20000, 1000)]
+
+    # Convertir la date de départ en format datetime
+    date_debut = datetime.combine(date_debut, datetime.min.time())
+
+    # Décaler la date si la semaine de préparation est nécessaire
+    if besoin_preparation:
+        date_debut += timedelta(days=7)
+
+    # Créer la liste des dates pour chaque semaine
+    dates_semaines = [(date_debut + timedelta(weeks=i)).strftime("%d/%m/%y") for i in range(11)]
     
     for i, (pas, surplus) in enumerate(semaines, start=1):
         calories_totales = metabolisme_basal + surplus
         proteines, lipides, glucides, fibres = calculer_macronutriments(masse_maigre, calories_totales)
         calories_totales = metabolisme_basal + surplus
-        pdf.cell(30, 10, str(i), 1, 0, 'C')
+        pdf.cell(30, 10, dates_semaines[i-1], 1, 0, 'C')  # Remplace le numéro de semaine par la date
         pdf.cell(40, 10, str(pas), 1, 0, 'C')
         pdf.cell(40, 10, str(int(calories_totales)), 1, 0, 'C')
         pdf.cell(30, 10, str(round(proteines, 1)), 1, 0, 'C')
@@ -161,17 +181,33 @@ if generate_button:
         pdf.image("icons/carbs.png", x=130, y=pdf.get_y() + 5, w=8)
     if os.path.exists("icons/steps.png"):
         pdf.image("icons/steps.png", x=170, y=pdf.get_y() + 5, w=8)
+
+    # Ajouter un espace après le tableau
+    pdf.ln(10)
+
+    # Définir la couleur et le style de la note
+    pdf.set_text_color(255, 215, 0)  # Texte doré
+    pdf.set_font("Arial", style='B', size=14)
+    pdf.cell(0, 10, "Note Importante", ln=True, align='L')
+
+    # Texte explicatif
+    pdf.set_text_color(255, 255, 255)  # Texte blanc
+    pdf.set_font("Arial", size=12)
+    pdf.multi_cell(0, 8, "Pour ne pas être ballonné et paraître plus gros que ce que tu ne l'es, consomme 15g de fibres par 1000 calories ingérées. C'est le secrêt d'un bon transit !", align='L')
+
+    # Ajouter un espace avant la fin du PDF
+    pdf.ln(10)
     
-    pdf_path = "programme_perte_poids.pdf"
+    pdf_path = "ai_program_by_Lartdetresec.pdf"
     pdf.output(pdf_path)
     
     st.success("📄 Programme généré avec succès !")
-    st.download_button(label="📥 Télécharge ton programme en PDF", data=open(pdf_path, "rb").read(), file_name="programme_perte_poids.pdf", mime="application/pdf")
+    st.download_button(label="📥 Télécharge ton programme en PDF", data=open(pdf_path, "rb").read(), file_name="ai_program_by_Lartdetresec.pdf", mime="application/pdf")
 
 st.markdown("---")
 st.subheader("📌 Et après ?")
-st.markdown("**Si tu es satisfait de ton physique à la fin de la semaine 11 :**")
+st.markdown("**Si tu es satisfait de ton physique à la fin de la 11e semaine :**")
 st.markdown("- Reste avec ton nouveau maintien calorique que tu devras calculer toi-même en choisissant ‘très actif’.")
-st.markdown("- Garde soit 15 000 pas par jour, ou choisis 10 000 pas par jour et recalcul ton maintien en choisissant ‘actif’.")
+st.markdown("- Garde soit 15 000 pas par jour, ou choisis 10 000 pas par jour et recalcule ton maintien en choisissant ‘actif’.")
 st.markdown("**Si tu n'es pas satisfait :**")
 st.markdown("- Tu peux recommencer un cycle avec tes nouvelles données corporelles.")
