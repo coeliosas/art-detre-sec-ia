@@ -91,7 +91,7 @@ st.subheader("📅 Sélectionne la date de début du programme")
 date_debut = st.date_input("Date de début", datetime.today(), key="date_debut")
 date_formatee = date_debut.strftime("%d/%m/%Y")
 
-generate_button = st.button("🚀 Générer mon programme", key="generate_button")
+generate_button = st.button("🚀 Je génère ton programme", key="generate_button")
 
 if generate_button:
     with st.spinner("Génération du programme..."):
