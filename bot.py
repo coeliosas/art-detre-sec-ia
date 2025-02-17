@@ -5,6 +5,11 @@ from dotenv import load_dotenv
 from fpdf import FPDF
 import time
 
+import streamlit as st
+import pandas as pd
+from datetime import datetime, timedelta
+import io
+
 # Charger la clé API OpenAI
 load_dotenv()
 api_key = os.getenv("OPENAI_API_KEY")
@@ -203,6 +208,42 @@ if generate_button:
     
     st.success("📄 Programme généré avec succès !")
     st.download_button(label="📥 Télécharge ton programme en PDF", data=open(pdf_path, "rb").read(), file_name="ai_program_by_Lartdetresec.pdf", mime="application/pdf")
+
+
+start_date = st.date_input("📆 Date de début de votre programme :", {date_formatee})
+
+# 📊 Génération de la feuille de productivité
+if st.button("📊 Générer ma Feuille de Productivité"):
+    # 1️⃣ Génération des dates
+    end_date = start_date + timedelta(days=27)  # 28 jours
+    dates = [start_date + timedelta(days=i) for i in range((end_date - start_date).days + 1)]
+
+    # 2️⃣ Création du fichier Excel
+    df = pd.DataFrame({"Date": dates, "Pas": "", "Calories": ""})
+
+    output = io.BytesIO()
+    with pd.ExcelWriter(output, engine="xlsxwriter") as writer:
+        df.to_excel(writer, sheet_name="Productivité", index=False)
+        workbook = writer.book
+        worksheet = writer.sheets["Productivité"]
+
+        # 🔥 Mise en forme conditionnelle (1 = vert, 0 = rouge)
+        green_format = workbook.add_format({"bg_color": "#C6EFCE", "font_color": "#006100"})
+        red_format = workbook.add_format({"bg_color": "#FFC7CE", "font_color": "#9C0006"})
+        for col in ["B", "C"]:
+            worksheet.conditional_format(f"{col}2:{col}{len(dates)+1}", 
+                                         {"type": "cell", "criteria": "==", "value": 1, "format": green_format})
+            worksheet.conditional_format(f"{col}2:{col}{len(dates)+1}", 
+                                         {"type": "cell", "criteria": "==", "value": 0, "format": red_format})
+
+    output.seek(0)
+
+    # 3️⃣ Téléchargement instantané
+    st.download_button(label="📥 Télécharger votre Feuille de Productivité", 
+                       data=output, 
+                       file_name="Feuille_Productivite.xlsx", 
+                       mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+
 
 st.markdown("---")
 st.subheader("📌 Et après ?")
